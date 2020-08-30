@@ -107,7 +107,7 @@ app.get(
 );
 
 app.get("/google/callback", passport.authenticate("google"), (req, res) => {
-  res.redirect("http://localhost:3001");
+  res.redirect("https://ordering-luch.herokuapp.com");
 });
 
 app.get("/user", (req, res) => {
