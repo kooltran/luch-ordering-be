@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./server.js"
+    "start": "NODE_ENV=production && node ./server.js",
+    "dev": "export NODE_ENV=development && nodemon server.js"
   },
   "dependencies": {
     "bcrypt": "^5.0.0",

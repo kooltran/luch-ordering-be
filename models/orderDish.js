@@ -4,20 +4,24 @@ const Schema = mongoose.Schema
 const orderSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   dish_name: {
     type: String,
-    required: true
+    required: true,
   },
   date: {
     type: String,
-    required: true
+    required: true,
   },
   quantity: {
     type: Number,
-    required: true
-  }
+    required: true,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
 })
 
 const OrderDish = mongoose.model('OrderDish', orderSchema)
