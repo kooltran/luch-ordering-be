@@ -108,14 +108,14 @@ app.get('/menuList', async (request, response) => {
 //     maxAge: 30 * 24 * 60 * 60 * 1000,
 //     keys: [config.session],
 //     secret: config.secret,
-//     secure: {}
+//     cookie: { secure: true },
 //   })
 // )
 
 const sess = {
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+  keys: [config.session],
   secret: config.secret,
-  saveUninitialized: false,
-  resave: true,
   cookie: { secure: true },
 }
 
@@ -123,7 +123,7 @@ if (NODE_ENV === 'development') {
   sess.cookie.secure = false
 }
 
-app.use(session(sess))
+app.use(cookiesSession(sess))
 
 app.use(passport.initialize())
 app.use(passport.session())
