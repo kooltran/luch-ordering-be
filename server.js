@@ -126,11 +126,12 @@ const sess = {
   maxAge: 30 * 24 * 60 * 60 * 1000,
   keys: [config.session],
   secret: config.secret,
-  cookie: { secure: true }
+  secure: true,
+  sameSite: "none"
 };
 
 if (NODE_ENV === "development") {
-  sess.cookie.secure = false;
+  sess.secure = false;
 }
 
 app.use(cookiesSession(sess));
