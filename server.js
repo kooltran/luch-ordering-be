@@ -7,6 +7,7 @@ const passport = require("passport");
 const cookiesSession = require("cookie-session");
 const path = require("path");
 const session = require("express-session");
+const authService = require("./services/auth.service");
 
 const cors = require("cors");
 dotenv.config();
@@ -147,16 +148,20 @@ app.get(
 );
 
 app.get("/google/callback", passport.authenticate("google"), (req, res) => {
-  res.redirect(`${REDIRECT_AUTH_URL}`);
+  res.redirect(`${REDIRECT_AUTH_URL}#/login?token=${req.token}`);
 });
 
-app.get("/user", (req, res) => {
-  if (req.user) {
-    res.send(req.user);
-  } else {
-    res.send({});
+app.get(
+  "/user",
+  [authService.checkTokenMW, authService.verifyToken],
+  (req, res) => {
+    if (req.user) {
+      res.send(req.user);
+    } else {
+      res.send({});
+    }
   }
-});
+);
 
 app.use("/orders", orderRoute);
 
