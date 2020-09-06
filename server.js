@@ -163,7 +163,11 @@ app.get(
   }
 );
 
-app.use("/orders", orderRoute);
+app.use(
+  "/orders",
+  [authService.checkTokenMW, authService.verifyToken],
+  orderRoute
+);
 
 app.listen(PORT, () => {
   console.log("Server started on http://localhost:" + PORT);
