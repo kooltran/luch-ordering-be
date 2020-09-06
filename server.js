@@ -30,15 +30,24 @@ const REDIRECT_AUTH_URL =
 app.use(bodyParser.json());
 app.use(
   cors({
-    origin: [
-      "http://localhost:3001",
-      "https://ordering-luch.herokuapp.com",
-      "http://ordering-luch.herokuapp.com",
-      "https://kooltran.github.io/lunch-ordering-fe"
-    ],
+    origin: "*",
     credentials: true
   })
 );
+
+app.all("*", function(req, res, next) {
+  var origin = req.get("origin");
+  res.header("Access-Control-Allow-Origin", origin);
+  res.header("Access-Control-Allow-Methods", "PUT, GET, POST, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.header("Access-Control-Allow-Credentials", true);
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  next();
+});
 
 const URL = "https://www.anzi.com.vn/";
 
