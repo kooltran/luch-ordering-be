@@ -1,106 +1,99 @@
-const express = require("express");
-const OrderDish = require("../models/orderDish");
+const express = require('express')
+const OrderDish = require('../models/orderDish')
 
-const router = express.Router();
+const router = express.Router()
 
-router.get("/list", async (req, res) => {
+router.get('/list', async (req, res) => {
   try {
-    const currentDate = new Date().toDateString();
+    const currentDate = new Date().toDateString()
 
     const orderList = await OrderDish.find({
       date: currentDate
-    }).populate("dish user");
+    }).populate('dish user')
 
-    res.json(orderList);
+    res.json(orderList)
   } catch (err) {
-    res.json({ message: err });
+    res.json({ message: err })
   }
-});
+})
 
-router.get("/all", async (req, res) => {
+router.get('/all', async (req, res) => {
   try {
-    const orderList = await OrderDish.find().populate("dish user");
-    res.json(orderList);
+    const orderList = await OrderDish.find().populate('dish user')
+    res.json(orderList)
   } catch (err) {
-    res.json({ message: err });
+    res.json({ message: err })
   }
-});
+})
 
-router.post("/create", async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
-    const dishes = req.body;
-    const userId = req.user._id;
-    const currentDate = dishes[0].date;
+    const dishes = req.body
+    const userId = req.user._id
+    const currentDate = dishes[0].date
 
     const currentDishes = await OrderDish.find({
       user: userId,
       date: currentDate
-    });
+    })
     await Promise.all(
       currentDishes.map(dish => OrderDish.findByIdAndDelete(dish.id))
-    );
+    )
 
     const orders = await Promise.all(
       dishes.map(dish => {
-        const { quantity, date, dishId, paid } = dish;
+        const { quantity, date, dishId, paid } = dish
         return OrderDish.findOneAndUpdate(
           { user: userId, date: dish.date, dish: dishId, paid },
           { quantity, date, dish: dishId },
           { upsert: true, new: true }
-        ).populate("dish user");
+        ).populate('dish user')
       })
-    );
+    )
 
     return res.send({
-      message: "Created new order successfully",
+      message: 'Created new order successfully',
       data: orders
-    });
+    })
   } catch (err) {
-    console.log(err);
-    res.status(500).send(err);
+    console.log(err)
+    res.status(500).send(err)
   }
-});
+})
 
-router.post("/delete-order", async (req, res) => {
+router.post('/delete', async (req, res) => {
   try {
-    const dishes = req.body;
-    const userId = req.user._id;
-    const currentDate = new Date().toDateString();
+    const dishId = req.body._id
 
-    const currentDishes = await OrderDish.find({
-      user: userId,
-      date: currentDate
-    });
-    await Promise.all(
-      currentDishes.map(dish => OrderDish.findByIdAndDelete(dish.id))
-    );
+    const deletedOrder = await OrderDish.findByIdAndDelete(dishId)
 
     return res.send({
-      message: "Your order was remove successfully"
-    });
+      message: 'Your order was remove successfully',
+      data: deletedOrder
+    })
   } catch (err) {
-    console.log(err);
-    res.status(500).send(err);
+    console.log(err)
+    res.status(500).send(err)
   }
-});
+})
 
-router.post("/check-paid", async (req, res) => {
+router.post('/check-paid', async (req, res) => {
   try {
-    const orderId = req.body.id;
-    const isPaid = req.body.isPaid;
+    const orderId = req.body.id
+    const isPaid = req.body.isPaid
     const rest = await OrderDish.findOneAndUpdate(
       { _id: orderId },
       { paid: isPaid },
       { upsert: true }
-    );
+    )
 
     return res.send({
-      message: "Your order was update successfully"
-    });
+      message: 'Your order was update successfully'
+    })
   } catch (err) {
-    res.status(500).send(err);
+    res.status(500).send(err)
   }
-});
+})
 
 // router.post("/create", async (req, res) => {
 //   try {
@@ -147,16 +140,16 @@ router.post("/check-paid", async (req, res) => {
 //   }
 // });
 
-router.delete("/:orderId", async (req, res) => {
+router.delete('/:orderId', async (req, res) => {
   try {
-    const removedOrder = await OrderDish.remove({ _id: req.params.orderId });
-    res.json(removedOrder);
+    const removedOrder = await OrderDish.remove({ _id: req.params.orderId })
+    res.json(removedOrder)
   } catch (error) {
-    res.json({ message: error });
+    res.json({ message: error })
   }
-});
+})
 
-router.patch("/:orderId", async (req, res) => {
+router.patch('/:orderId', async (req, res) => {
   try {
     const updatedOrder = await OrderDish.updateOne(
       {
@@ -165,11 +158,11 @@ router.patch("/:orderId", async (req, res) => {
       {
         $set: { dish_name: req.body.dish_name }
       }
-    );
-    res.json(updatedOrder);
+    )
+    res.json(updatedOrder)
   } catch (error) {
-    res.json({ message: error });
+    res.json({ message: error })
   }
-});
+})
 
-module.exports = router;
+module.exports = router
