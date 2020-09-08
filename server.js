@@ -59,7 +59,7 @@ const URL = 'https://www.anzi.com.vn/'
 console.log(NODE_ENV)
 
 mongoose
-  .connect(DB_URL, {
+  .connect(process.env.PROD_DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true
