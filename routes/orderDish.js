@@ -1,5 +1,6 @@
 const express = require('express')
 const OrderDish = require('../models/orderDish')
+// const AllOrderDishes = require('../models/allOrderDishes')
 
 const router = express.Router()
 
@@ -25,6 +26,36 @@ router.get('/all', async (req, res) => {
     res.json({ message: err })
   }
 })
+
+// router.get('/get-all-orders', async (req, res) => {
+//   try {
+//     const orderList = await OrderDish.find().populate('dish, user')
+//     const orderListByDate = orderList.reduce((acc, order) => {
+//       const key = order['date']
+//       console.log(acc[key]['data'])
+//       if (acc[key].data) {
+//         acc[key]['data'] = acc[key]['data'] || []
+//         // acc[key].data.push(order)
+//       }
+//       return acc
+//     }, {})
+//     console.log(orderListByDate, 'orderListByDate')
+//     new AllOrderDishes(orderListByDate).save()
+//     res.json(orderList)
+//   } catch (err) {
+//     res.json({ message: err })
+//   }
+// })
+
+// router.post('/paid-provider', async (req, res) => {
+//   try {
+//     const chosenDate = req.body.date
+//     const orderList = await OrderDish.find({ date: chosenDate })
+//     console.log(orderList)
+//   } catch (error) {
+//     res.json({ message: err })
+//   }
+// })
 
 router.post('/create', async (req, res) => {
   try {
