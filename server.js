@@ -71,7 +71,9 @@ db.on('error', err => {
 
 const getMenuList = async () => {
   try {
-    const brower = await puppeteer.launch()
+    const brower = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    })
     const page = await brower.newPage()
     await page.goto(URL)
     const existList = await MenuList.find()
