@@ -75,7 +75,12 @@ const getMenuList = async () => {
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     })
     const page = await brower.newPage()
-    await page.goto(URL)
+
+    await page.goto(URL, {
+      waitUntil: 'load',
+      timeout: 0
+    })
+
     const existList = await MenuList.find()
 
     const menuList = await page.evaluate(() => {
