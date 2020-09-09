@@ -76,7 +76,7 @@ router.post('/create', async (req, res) => {
         const { quantity, date, dishId, paid } = dish
         return OrderDish.findOneAndUpdate(
           { user: userId, date: dish.date, dish: dishId, paid },
-          { quantity, date, dish: dishId },
+          { quantity, date, dish: dishId, date: dish.date },
           { upsert: true, new: true }
         ).populate('dish user')
       })
