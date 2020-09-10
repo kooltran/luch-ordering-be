@@ -8,6 +8,11 @@ const cookiesSession = require('cookie-session')
 const path = require('path')
 const session = require('express-session')
 const authService = require('./services/auth.service')
+const webpush = require('web-push')
+
+// const publicVapidKey =
+//   'BHAKxU6iUAw82ir5KZIzAjYUzxcj81h5r2HZu6VViXibueksOwHdWur69HV7Ze6Xssxr1j_3dY5L_2SlJ7-ekh8'
+// const privateVapidKey = 'Z1RWlWejbCqeTgJcxGoHjGZnOj2IOCRZUAEbhX2ptLk'
 
 const cors = require('cors')
 dotenv.config()
@@ -39,6 +44,8 @@ app.use(
     credentials: true
   })
 )
+
+// webpush.setVapidDetails('mailto:test@test.com', publicVapidKey, privateVapidKey)
 
 app.all('*', function (req, res, next) {
   var origin = req.get('origin')
@@ -96,26 +103,111 @@ const getMenuList = async () => {
       return menuInfo
     })
 
+    const newList = [
+      {
+        name: 'Cút chiên bơ',
+        img: 'https://www.anzi.com.vn/upload/post/food/02012019204836.jpeg',
+        price: '35.000đ'
+      },
+      {
+        name: 'Thịt kho tàu',
+        img: 'https://www.anzi.com.vn/upload/post/food/15112018120941.jpeg',
+        price: '35.000đ'
+      },
+      {
+        name: 'Bò xào cải chua',
+        img: 'https://www.anzi.com.vn/upload/post/food/22052019220933.jpeg',
+        price: '35.000đ'
+      },
+      {
+        name: 'Cá kho',
+        img: 'https://www.anzi.com.vn/upload/post/general/18112018184710.jpeg',
+        price: '35.000đ'
+      },
+      {
+        name: 'Tôm rim',
+        img: 'https://www.anzi.com.vn/upload/post/general/18112018184710.jpeg',
+        price: '35.000đ'
+      },
+      {
+        name: 'Canh bí đỏ',
+        img: 'https://www.anzi.com.vn/upload/post/general/18112018184710.jpeg',
+        price: '35.000đ'
+      },
+      {
+        name: 'Thịt luộc',
+        img: 'https://www.anzi.com.vn/upload/post/food/13112018125039.jpeg',
+        price: '35.000đ'
+      }
+    ]
+
+    // console.log(menuList)
+    // await Promise.all(
+    //   menuList.map(async item => {
+    //     const { img, name, price } = item
+    //     await MenuList.findOneAndUpdate(
+    //       { name },
+    //       { img, name, price },
+    //       { upsert: true, new: false }
+    //     )
+    //   })
+    // )
+    // console.log(existList)
+
+    // if (existList.length) {
+    //   const resList = newList.map((item, idx) => ({
+    //     id: existList[idx]._id,
+    //     name: item.name,
+    //     img: item.img,
+    //     price: item.price
+    //   }))
+    //   resList.map(async (item = {}) =>
+    //     MenuList.updateOne({ _id: item.id }, item, { upsert: true })
+    //   )
+    // }
+
     if (existList.length === 0) {
-      MenuList.insertMany(menuList)
+      await Promise.all(
+        menuList.map(async item => {
+          const { img, name, price } = item
+          await MenuList.findOneAndUpdate(
+            { name },
+            { img, name, price },
+            { upsert: true, new: false }
+          )
+        })
+      )
     } else {
-      const newList = menuList.map((item, idx) => ({
+      const resList = menuList.map((item, idx) => ({
         id: existList[idx]._id,
         name: item.name,
         img: item.img,
         price: item.price
       }))
-      newList.map(async (item = {}) =>
-        MenuList.updateOne({ _id: item.id }, item, { upsert: false })
+      resList.map(async (item = {}) =>
+        MenuList.updateOne({ _id: item.id }, item, { upsert: true })
       )
     }
-    return menuList
+    // return menuList
   } catch (error) {
     console.log(error)
   }
 }
 
 getMenuList()
+
+//Subscribe Route
+// app.post('/subscribe', (req, res) => {
+//   // Get pushSubscription object
+//   const subscription = req.body
+//   res.status(201).json()
+
+//   // Create payload
+//   const payload = JSON.stringify({ title: 'Push Test' })
+
+//   // Pass object into sendNotification
+//   webpush.sendNotification(subscription, payload).catch(err => console.log(err))
+// })
 
 app.get('/menuList', async (request, response) => {
   try {
