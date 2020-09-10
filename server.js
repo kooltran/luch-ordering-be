@@ -9,6 +9,9 @@ const path = require('path')
 const session = require('express-session')
 const authService = require('./services/auth.service')
 const webpush = require('web-push')
+const moment = require('moment')
+const today = moment().startOf('day')
+console.log(today)
 
 // const publicVapidKey =
 //   'BHAKxU6iUAw82ir5KZIzAjYUzxcj81h5r2HZu6VViXibueksOwHdWur69HV7Ze6Xssxr1j_3dY5L_2SlJ7-ekh8'
@@ -47,7 +50,7 @@ app.use(
 
 // webpush.setVapidDetails('mailto:test@test.com', publicVapidKey, privateVapidKey)
 
-app.all('*', function (req, res, next) {
+app.all('*', function(req, res, next) {
   var origin = req.get('origin')
   res.header('Access-Control-Allow-Origin', origin)
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS')
@@ -141,18 +144,16 @@ const getMenuList = async () => {
       }
     ]
 
-    // console.log(menuList)
-    // await Promise.all(
-    //   menuList.map(async item => {
-    //     const { img, name, price } = item
-    //     await MenuList.findOneAndUpdate(
-    //       { name },
-    //       { img, name, price },
-    //       { upsert: true, new: false }
-    //     )
-    //   })
-    // )
-    // console.log(existList)
+    await Promise.all(
+      menuList.map(async item => {
+        const { img, name, price } = item
+        await MenuList.findOneAndUpdate(
+          { name },
+          { img, name, price, createdAt: today },
+          { upsert: true, new: false }
+        )
+      })
+    )
 
     // if (existList.length) {
     //   const resList = newList.map((item, idx) => ({
@@ -166,28 +167,28 @@ const getMenuList = async () => {
     //   )
     // }
 
-    if (existList.length === 0) {
-      await Promise.all(
-        menuList.map(async item => {
-          const { img, name, price } = item
-          await MenuList.findOneAndUpdate(
-            { name },
-            { img, name, price },
-            { upsert: true, new: false }
-          )
-        })
-      )
-    } else {
-      const resList = menuList.map((item, idx) => ({
-        id: existList[idx]._id,
-        name: item.name,
-        img: item.img,
-        price: item.price
-      }))
-      resList.map(async (item = {}) =>
-        MenuList.updateOne({ _id: item.id }, item, { upsert: true })
-      )
-    }
+    // if (existList.length === 0) {
+    //   await Promise.all(
+    //     menuList.map(async item => {
+    //       const { img, name, price } = item;
+    //       await MenuList.findOneAndUpdate(
+    //         { name },
+    //         { img, name, price },
+    //         { upsert: true, new: false }
+    //       );
+    //     })
+    //   );
+    // } else {
+    //   const resList = menuList.map((item, idx) => ({
+    //     id: existList[idx]._id,
+    //     name: item.name,
+    //     img: item.img,
+    //     price: item.price
+    //   }));
+    //   resList.map(async (item = {}) =>
+    //     MenuList.updateOne({ _id: item.id }, item, { upsert: true })
+    //   );
+    // }
     // return menuList
   } catch (error) {
     console.log(error)
@@ -211,7 +212,14 @@ getMenuList()
 
 app.get('/menuList', async (request, response) => {
   try {
-    const res = await MenuList.find()
+    const res = await MenuList.find({
+      createdAt: {
+        $gte: today
+      }
+    })
+
+    // const res = await MenuList.find();
+    // console.log(res);
     response.send(res)
   } catch (error) {
     response.status(500).send(error)

@@ -13,7 +13,8 @@ const menuListSchema = new Schema({
   price: {
     type: String,
     required: true
-  }
+  },
+  createdAt: { type: Date }
 })
 
 const MenuList = mongoose.model('MenuList', menuListSchema)
