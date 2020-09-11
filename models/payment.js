@@ -1,12 +1,13 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
-const Orders = require("./orderDish");
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const Orders = require('./orderDish')
 
 const PaymentSchema = new Schema({
-  id: string,
+  id: String,
   orders: [{ type: Schema.Types.ObjectId, ref: Orders }],
-  isPaid: boolean
-});
+  isPaid: { type: Boolean, default: false },
+  createdAt: String
+})
 
-const Payment = mongoose.model("Payment", PaymentSchema);
-module.exports = Payment;
+const Payment = mongoose.model('Payment', PaymentSchema)
+module.exports = Payment

@@ -1,6 +1,7 @@
 const express = require('express')
 const OrderDish = require('../models/orderDish')
-// const AllOrderDishes = require('../models/allOrderDishes')
+const Payment = require('../models/payment')
+const User = require('../models/user')
 
 const router = express.Router()
 
@@ -81,6 +82,24 @@ router.post('/create', async (req, res) => {
         ).populate('dish user')
       })
     )
+    // console.log(orders, 'orders')
+    // const record = await Payment.findOne({orders})
+    // const payment = await Promise.all(
+    //   orders.map(order => {
+    //     return Payment.findOneAndUpdate(
+    //       { createdAt: currentDate },
+    //       { orders: [order] },
+    //       { upsert: true }
+    //     ).populate('dish user')
+    //   })
+    // )
+    // console.log(payment, 'payment')
+
+    // await Payment.findOneAndUpdate(
+    //   { createdAt: currentDate },
+    //   { orders: orders },
+    //   { upsert: true }
+    // ).populate('dish user')
 
     return res.send({
       message: 'Created new order successfully',
@@ -170,6 +189,40 @@ router.post('/check-paid', async (req, res) => {
 //     res.status(500).send(err);
 //   }
 // });
+
+router.get('/payment', async (req, res) => {
+  try {
+    const orderList = await OrderDish.find().populate('dish user')
+    const orderListByDate = orderList.reduce((acc, order) => {
+      const key = order['date']
+      acc[key] = acc[key] || []
+      acc[key].push(order)
+      return acc
+    }, {})
+
+    // const allUser = await User.find()
+    // const findUserByName = userId =>
+    //   allUser.find(user => parseInt(user._id) === parseInt(userId))
+
+    await Promise.all(
+      Object.keys(orderListByDate).map(async date => {
+        const orders = orderListByDate[date]
+        console.log(orders, 'orders')
+        return await Payment.findOneAndUpdate(
+          { createdAt: date },
+          { orders: orderListByDate[date] },
+          { upsert: true }
+        )
+      })
+    )
+    const payment = await Payment.find().populate('orders')
+    payment.map(item => console.log(item.orders))
+    console.log(payment, 'payment')
+    res.json(payment)
+  } catch (error) {
+    res.json({ message: error })
+  }
+})
 
 router.delete('/:orderId', async (req, res) => {
   try {

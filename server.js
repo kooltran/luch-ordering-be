@@ -4,14 +4,10 @@ const express = require('express')
 const puppeteer = require('puppeteer')
 const bodyParser = require('body-parser')
 const passport = require('passport')
-const cookiesSession = require('cookie-session')
 const path = require('path')
-const session = require('express-session')
 const authService = require('./services/auth.service')
 const webpush = require('web-push')
 const moment = require('moment')
-const today = moment().startOf('day')
-console.log(today)
 
 // const publicVapidKey =
 //   'BHAKxU6iUAw82ir5KZIzAjYUzxcj81h5r2HZu6VViXibueksOwHdWur69HV7Ze6Xssxr1j_3dY5L_2SlJ7-ekh8'
@@ -24,6 +20,7 @@ const config = require('./config.json')
 
 const MenuList = require('./models/menu')
 const orderRoute = require('./routes/orderDish')
+const usersRoute = require('./routes/users')
 
 require('./passport-setup')
 
@@ -50,7 +47,7 @@ app.use(
 
 // webpush.setVapidDetails('mailto:test@test.com', publicVapidKey, privateVapidKey)
 
-app.all('*', function(req, res, next) {
+app.all('*', function (req, res, next) {
   var origin = req.get('origin')
   res.header('Access-Control-Allow-Origin', origin)
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS')
@@ -90,8 +87,6 @@ const getMenuList = async () => {
       waitUntil: 'load',
       timeout: 0
     })
-
-    const existList = await MenuList.find()
 
     const menuList = await page.evaluate(() => {
       const items = document.querySelectorAll('#list_menu .item-menu')
@@ -146,6 +141,7 @@ const getMenuList = async () => {
 
     await Promise.all(
       menuList.map(async item => {
+        const today = moment().startOf('day')
         const { img, name, price } = item
         await MenuList.findOneAndUpdate(
           { name },
@@ -211,6 +207,7 @@ getMenuList()
 // })
 
 app.get('/menuList', async (request, response) => {
+  const today = moment().startOf('day')
   try {
     const res = await MenuList.find({
       createdAt: {
@@ -240,22 +237,28 @@ app.get('/google/callback', passport.authenticate('google'), (req, res) => {
   res.redirect(`${REDIRECT_AUTH_URL}#/login?token=${req.token}`)
 })
 
-app.get(
-  '/user',
-  [authService.checkTokenMW, authService.verifyToken],
-  (req, res) => {
-    if (req.user) {
-      res.send(req.user)
-    } else {
-      res.send({})
-    }
-  }
-)
+// app.get(
+//   '/user',
+//   [authService.checkTokenMW, authService.verifyToken],
+//   (req, res) => {
+//     if (req.user) {
+//       res.send(req.user)
+//     } else {
+//       res.send({})
+//     }
+//   }
+// )
 
 app.use(
   '/orders',
   [authService.checkTokenMW, authService.verifyToken],
   orderRoute
+)
+
+app.use(
+  '/users',
+  [authService.checkTokenMW, authService.verifyToken],
+  usersRoute
 )
 
 app.listen(PORT, () => {
