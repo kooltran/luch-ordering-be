@@ -1,30 +1,7 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
-const User = require("./user");
-const Dish = require("./menu");
-
-// const orderSchema = new Schema({
-//   name: {
-//     type: String,
-//     required: true,
-//   },
-//   dish_name: {
-//     type: String,
-//     required: true,
-//   },
-//   date: {
-//     type: String,
-//     required: true,
-//   },
-//   quantity: {
-//     type: Number,
-//     required: true,
-//   },
-//   price: {
-//     type: Number,
-//     required: true,
-//   },
-// })
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const User = require('./user')
+const Dish = require('./menu')
 
 const orderSchema = new Schema({
   user: {
@@ -46,8 +23,8 @@ const orderSchema = new Schema({
   paid: {
     type: Boolean
   }
-});
+})
 
-const OrderDish = mongoose.model("OrderDish", orderSchema);
+const OrderDish = mongoose.model('OrderDish', orderSchema)
 
-module.exports = OrderDish;
+module.exports = OrderDish
