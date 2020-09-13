@@ -47,7 +47,7 @@ app.use(
 
 // webpush.setVapidDetails('mailto:test@test.com', publicVapidKey, privateVapidKey)
 
-app.all('*', function (req, res, next) {
+app.all('*', function(req, res, next) {
   var origin = req.get('origin')
   res.header('Access-Control-Allow-Origin', origin)
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS')
@@ -76,6 +76,8 @@ db.on('error', err => {
   console.log('DB connection error:', err.message)
 })
 
+mongoose.set('useFindAndModify', false)
+
 const getMenuList = async () => {
   try {
     const brower = await puppeteer.launch({
@@ -101,44 +103,6 @@ const getMenuList = async () => {
       return menuInfo
     })
 
-    const newList = [
-      {
-        name: 'Cút chiên bơ',
-        img: 'https://www.anzi.com.vn/upload/post/food/02012019204836.jpeg',
-        price: '35.000đ'
-      },
-      {
-        name: 'Thịt kho tàu',
-        img: 'https://www.anzi.com.vn/upload/post/food/15112018120941.jpeg',
-        price: '35.000đ'
-      },
-      {
-        name: 'Bò xào cải chua',
-        img: 'https://www.anzi.com.vn/upload/post/food/22052019220933.jpeg',
-        price: '35.000đ'
-      },
-      {
-        name: 'Cá kho',
-        img: 'https://www.anzi.com.vn/upload/post/general/18112018184710.jpeg',
-        price: '35.000đ'
-      },
-      {
-        name: 'Tôm rim',
-        img: 'https://www.anzi.com.vn/upload/post/general/18112018184710.jpeg',
-        price: '35.000đ'
-      },
-      {
-        name: 'Canh bí đỏ',
-        img: 'https://www.anzi.com.vn/upload/post/general/18112018184710.jpeg',
-        price: '35.000đ'
-      },
-      {
-        name: 'Thịt luộc',
-        img: 'https://www.anzi.com.vn/upload/post/food/13112018125039.jpeg',
-        price: '35.000đ'
-      }
-    ]
-
     await Promise.all(
       menuList.map(async item => {
         const today = moment().startOf('day')
@@ -150,42 +114,6 @@ const getMenuList = async () => {
         )
       })
     )
-
-    // if (existList.length) {
-    //   const resList = newList.map((item, idx) => ({
-    //     id: existList[idx]._id,
-    //     name: item.name,
-    //     img: item.img,
-    //     price: item.price
-    //   }))
-    //   resList.map(async (item = {}) =>
-    //     MenuList.updateOne({ _id: item.id }, item, { upsert: true })
-    //   )
-    // }
-
-    // if (existList.length === 0) {
-    //   await Promise.all(
-    //     menuList.map(async item => {
-    //       const { img, name, price } = item;
-    //       await MenuList.findOneAndUpdate(
-    //         { name },
-    //         { img, name, price },
-    //         { upsert: true, new: false }
-    //       );
-    //     })
-    //   );
-    // } else {
-    //   const resList = menuList.map((item, idx) => ({
-    //     id: existList[idx]._id,
-    //     name: item.name,
-    //     img: item.img,
-    //     price: item.price
-    //   }));
-    //   resList.map(async (item = {}) =>
-    //     MenuList.updateOne({ _id: item.id }, item, { upsert: true })
-    //   );
-    // }
-    // return menuList
   } catch (error) {
     console.log(error)
   }
@@ -215,8 +143,6 @@ app.get('/menuList', async (request, response) => {
       }
     })
 
-    // const res = await MenuList.find();
-    // console.log(res);
     response.send(res)
   } catch (error) {
     response.status(500).send(error)
@@ -236,18 +162,6 @@ app.get(
 app.get('/google/callback', passport.authenticate('google'), (req, res) => {
   res.redirect(`${REDIRECT_AUTH_URL}#/login?token=${req.token}`)
 })
-
-// app.get(
-//   '/user',
-//   [authService.checkTokenMW, authService.verifyToken],
-//   (req, res) => {
-//     if (req.user) {
-//       res.send(req.user)
-//     } else {
-//       res.send({})
-//     }
-//   }
-// )
 
 app.use(
   '/orders',
