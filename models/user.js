@@ -5,7 +5,7 @@ const UserSchema = new Schema({
   username: String,
   googleId: String,
   avatar: String,
-  roles: Array,
+  roles: Array
 })
 
 const User = mongoose.model('User', UserSchema)
