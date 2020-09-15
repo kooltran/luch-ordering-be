@@ -12,7 +12,7 @@ router.get('/list', async (req, res) => {
     const currentDate = new Date().toDateString()
 
     const orderList = await OrderDish.find({
-      date: currentDate,
+      date: currentDate
     }).populate('dish user')
 
     res.json(orderList)
@@ -38,7 +38,7 @@ router.post('/create', async (req, res) => {
 
     const currentDishes = await OrderDish.find({
       user: userId,
-      date: currentDate,
+      date: currentDate
     })
     await Promise.all(
       currentDishes.map(dish => OrderDish.findByIdAndDelete(dish.id))
@@ -57,7 +57,7 @@ router.post('/create', async (req, res) => {
 
     return res.send({
       message: 'Created new order successfully',
-      data: orders,
+      data: orders
     })
   } catch (err) {
     res.status(500).send(err)
@@ -70,10 +70,7 @@ router.post('/delete', async (req, res) => {
 
     const deletedOrder = await OrderDish.findByIdAndDelete(dishId)
 
-    return res.send({
-      message: 'Your order was remove successfully',
-      data: deletedOrder,
-    })
+    return res.send(deletedOrder)
   } catch (err) {
     console.log(err)
     res.status(500).send(err)
@@ -81,19 +78,19 @@ router.post('/delete', async (req, res) => {
 })
 
 router.post('/check-paid', async (req, res) => {
+  console.log(req, 'req')
   try {
-    const orderId = req.body.id
-    const isPaid = req.body.isPaid
+    const { id, isPaid, isDateMode } = req.body
 
     await OrderDish.findOneAndUpdate(
-      { _id: orderId },
+      { _id: id },
       { paid: isPaid },
       { upsert: true }
     )
 
-    return res.send({
-      message: 'Your order was update successfully',
-    })
+    const orderList = await OrderDish.find().populate('dish user')
+
+    return res.send(orderList)
   } catch (err) {
     res.status(500).send(err)
   }
@@ -110,9 +107,22 @@ router.post('/check-paid-provider', async (req, res) => {
       { upsert: true }
     )
 
-    return res.send({
-      message: 'Your order was update successfully',
+    const payment = await Payment.find().populate({
+      path: 'orders',
+      model: OrderDish,
+      populate: [
+        {
+          path: 'dish',
+          model: MenuList
+        },
+        {
+          path: 'user',
+          model: User
+        }
+      ]
     })
+
+    return res.send(payment)
   } catch (err) {
     res.status(500).send(err)
   }
@@ -129,11 +139,22 @@ router.post('/paid-allweeks', async (req, res) => {
       { upsert: true }
     )
 
-    const paymentUser = await PaymentUser.find()
-
-    return res.send({
-      message: 'Your order was update successfully',
+    const paymentUser = await PaymentUser.find().populate({
+      path: 'orders',
+      model: OrderDish,
+      populate: [
+        {
+          path: 'dish',
+          model: MenuList
+        },
+        {
+          path: 'user',
+          model: User
+        }
+      ]
     })
+
+    return res.send(paymentUser)
   } catch (err) {
     res.status(500).send(err)
   }
@@ -165,13 +186,13 @@ router.get('/payment', async (req, res) => {
       populate: [
         {
           path: 'dish',
-          model: MenuList,
+          model: MenuList
         },
         {
           path: 'user',
-          model: User,
-        },
-      ],
+          model: User
+        }
+      ]
     })
 
     res.json(payment)
@@ -188,7 +209,7 @@ router.get('/payment-by-user', async (req, res) => {
       date: order.date,
       dish: { name: order.dish.name, price: order.dish.price },
       quantity: order.quantity,
-      user: order.user.username,
+      user: order.user.username
     }))
 
     const orderListByUser = orderListFomatted.reduce((acc, order) => {
@@ -201,8 +222,12 @@ router.get('/payment-by-user', async (req, res) => {
     await Promise.all(
       Object.keys(orderListByUser).map(async user => {
         const orders = orderListByUser[user].map(item => item.id)
-
-        return await PaymentUser.findOneAndUpdate(
+        console.log(orders, 'orders')
+        // if (orders.length === 0) {
+        //   await PaymentUser.findOneAndDelete({ user: user })
+        // } else {
+        // }
+        await PaymentUser.findOneAndUpdate(
           { user: user },
           { orders: orders },
           { upsert: true }
@@ -215,13 +240,13 @@ router.get('/payment-by-user', async (req, res) => {
       populate: [
         {
           path: 'dish',
-          model: MenuList,
+          model: MenuList
         },
         {
           path: 'user',
-          model: User,
-        },
-      ],
+          model: User
+        }
+      ]
     })
 
     res.json(paymentByUser)
@@ -243,10 +268,10 @@ router.patch('/:orderId', async (req, res) => {
   try {
     const updatedOrder = await OrderDish.updateOne(
       {
-        _id: req.params.orderId,
+        _id: req.params.orderId
       },
       {
-        $set: { dish_name: req.body.dish_name },
+        $set: { dish_name: req.body.dish_name }
       }
     )
     res.json(updatedOrder)
