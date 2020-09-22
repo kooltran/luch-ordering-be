@@ -6,7 +6,7 @@ const PaymentSchema = new Schema({
   id: String,
   orders: [{ type: Schema.Types.ObjectId, ref: Orders }],
   isPaid: { type: Boolean, default: false },
-  createdAt: String
+  createdAt: { type: Date },
 })
 
 const Payment = mongoose.model('Payment', PaymentSchema)

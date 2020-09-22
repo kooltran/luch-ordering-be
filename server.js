@@ -41,13 +41,13 @@ app.use(bodyParser.json())
 app.use(
   cors({
     origin: '*',
-    credentials: true
+    credentials: true,
   })
 )
 
 // webpush.setVapidDetails('mailto:test@test.com', publicVapidKey, privateVapidKey)
 
-app.all('*', function(req, res, next) {
+app.all('*', function (req, res, next) {
   var origin = req.get('origin')
   res.header('Access-Control-Allow-Origin', origin)
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS')
@@ -69,7 +69,7 @@ mongoose
   .connect(DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
   .then(() => console.log('DB connected'))
 db.on('error', err => {
@@ -81,20 +81,19 @@ mongoose.set('useFindAndModify', false)
 const getMenuList = async () => {
   try {
     const brower = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     })
     const page = await brower.newPage()
 
     await page.goto(URL, {
       waitUntil: 'load',
-      timeout: 0
+      timeout: 0,
     })
 
     const menuList = await page.evaluate(() => {
       const items = document.querySelectorAll('#list_menu .item-menu')
       let menuInfo = []
       items.forEach((item = {}) => {
-        console.log(item)
         const img = item.children[0].children[0].src
         const name = item.children[1].textContent.trim()
         const price = item.children[2].children[0].textContent.trim()
@@ -139,8 +138,8 @@ app.get('/menuList', async (request, response) => {
   try {
     const res = await MenuList.find({
       createdAt: {
-        $gte: today
-      }
+        $gte: today,
+      },
     })
 
     response.send(res)
@@ -155,7 +154,7 @@ app.use(passport.session())
 app.get(
   '/google',
   passport.authenticate('google', {
-    scope: ['profile', 'email']
+    scope: ['profile', 'email'],
   })
 )
 

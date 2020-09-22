@@ -6,23 +6,27 @@ const Dish = require('./menu')
 const orderSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
-    ref: User
+    ref: User,
   },
   dish: {
     type: Schema.Types.ObjectId,
-    ref: Dish
+    ref: Dish,
   },
   date: {
     type: String,
-    required: true
+    required: true,
   },
   quantity: {
     type: Number,
-    required: true
+    required: true,
   },
   paid: {
-    type: Boolean
-  }
+    type: Boolean,
+  },
+  createdAt: {
+    type: Date,
+    require: true,
+  },
 })
 
 const OrderDish = mongoose.model('OrderDish', orderSchema)

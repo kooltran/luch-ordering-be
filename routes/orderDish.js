@@ -4,6 +4,7 @@ const Payment = require('../models/payment')
 const MenuList = require('../models/menu')
 const User = require('../models/user')
 const PaymentUser = require('../models/paymentByUser')
+const moment = require('moment')
 
 const router = express.Router()
 
@@ -46,10 +47,15 @@ router.post('/create', async (req, res) => {
 
     const orders = await Promise.all(
       dishes.map(dish => {
-        const { quantity, date, dishId, paid } = dish
+        const { quantity, date, dishId, paid, createdAt } = dish
         return OrderDish.findOneAndUpdate(
           { user: userId, date: dish.date, dish: dishId, paid },
-          { quantity, date, dish: dishId, date: dish.date },
+          {
+            quantity,
+            date,
+            dish: dishId,
+            createdAt
+          },
           { upsert: true, new: true }
         ).populate('dish user')
       })
@@ -202,13 +208,13 @@ router.post('/paid-allweeks', async (req, res) => {
   }
 })
 
-router.get('/payment', async (req, res) => {
+router.get('/payments', async (req, res) => {
   try {
     const { query } = req
     const { type = 'date' } = query
-    const orderList = await OrderDish.find().populate('dish user')
 
     if (type === 'date') {
+      const orderList = await OrderDish.find()
       const orderListByDate = orderList.reduce((acc, order) => {
         const key = order['date']
         acc[key] = acc[key] || []
@@ -220,7 +226,7 @@ router.get('/payment', async (req, res) => {
         Object.keys(orderListByDate).map(async date => {
           const orders = orderListByDate[date]
           return await Payment.findOneAndUpdate(
-            { createdAt: date },
+            { createdAt: moment(new Date(date)) },
             { orders: orders },
             { upsert: true }
           )
@@ -244,6 +250,112 @@ router.get('/payment', async (req, res) => {
 
       res.json(payment)
     } else {
+      const orderList = await OrderDish.find()
+
+      const orderListFomatted = orderList.map(order => ({
+        id: order._id,
+        date: order.date,
+        dish: { name: order.dish.name, price: order.dish.price },
+        quantity: order.quantity,
+        user: order.user._id
+      }))
+
+      const orderListByUser = orderListFomatted.reduce((acc, order) => {
+        const key = order['user']
+        acc[key] = acc[key] || []
+        acc[key].push(order)
+        return acc
+      }, {})
+
+      await Promise.all(
+        Object.keys(orderListByUser).map(async user => {
+          const orders = orderListByUser[user].map(item => item.id)
+
+          await PaymentUser.findOneAndUpdate(
+            { user: user },
+            { orders: orders },
+            { upsert: true }
+          )
+        })
+      )
+      const paymentByUser = await PaymentUser.find().populate({
+        path: 'orders',
+        model: OrderDish,
+        populate: [
+          {
+            path: 'dish',
+            model: MenuList
+          },
+          {
+            path: 'user',
+            model: User
+          }
+        ]
+      })
+
+      res.json(paymentByUser)
+    }
+  } catch (error) {
+    res.json({ message: error })
+  }
+})
+
+router.get('/payment-by-week', async (req, res) => {
+  try {
+    const currentWeek = moment(new Date()).week()
+    const firstCurWeekDate = moment()
+      .startOf('day')
+      .day('Monday')
+      .week(currentWeek)
+
+    const endCurWeekDate = moment().startOf('day').day('Friday')
+    const orderList = await OrderDish.find()
+
+    const { query } = req
+    const { type = 'date' } = query
+
+    if (type === 'date') {
+      const orderList = await OrderDish.find()
+      const orderListByDate = orderList.reduce((acc, order) => {
+        const key = order['date']
+        acc[key] = acc[key] || []
+        acc[key].push(order)
+        return acc
+      }, {})
+
+      await Promise.all(
+        Object.keys(orderListByDate).map(async date => {
+          const orders = orderListByDate[date]
+          return await Payment.findOneAndUpdate(
+            { createdAt: moment(new Date(date)) },
+            { orders: orders },
+            { upsert: true }
+          )
+        })
+      )
+
+      const payment = await Payment.find({
+        createdAt: { $gte: firstCurWeekDate, $lt: endCurWeekDate }
+      }).populate({
+        path: 'orders',
+        model: OrderDish,
+        populate: [
+          {
+            path: 'dish',
+            model: MenuList
+          },
+          {
+            path: 'user',
+            model: User
+          }
+        ]
+      })
+
+      res.json(payment)
+    } else {
+      const orderList = await OrderDish.find({
+        createdAt: { $gte: firstCurWeekDate, $lt: endCurWeekDate }
+      })
       const orderListFomatted = orderList.map(order => ({
         id: order._id,
         date: order.date,
