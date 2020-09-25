@@ -13,7 +13,7 @@ router.get('/list', async (req, res) => {
     const currentDate = new Date().toDateString()
 
     const orderList = await OrderDish.find({
-      date: currentDate
+      date: currentDate,
     }).populate('dish user')
 
     res.json(orderList)
@@ -39,7 +39,7 @@ router.post('/create', async (req, res) => {
 
     const currentDishes = await OrderDish.find({
       user: userId,
-      date: currentDate
+      date: currentDate,
     })
     await Promise.all(
       currentDishes.map(dish => OrderDish.findByIdAndDelete(dish.id))
@@ -54,7 +54,7 @@ router.post('/create', async (req, res) => {
             quantity,
             date,
             dish: dishId,
-            createdAt
+            createdAt,
           },
           { upsert: true, new: true }
         ).populate('dish user')
@@ -63,7 +63,7 @@ router.post('/create', async (req, res) => {
 
     return res.send({
       message: 'Created new order successfully',
-      data: orders
+      data: orders,
     })
   } catch (err) {
     res.status(500).send(err)
@@ -100,13 +100,13 @@ router.post('/check-paid', async (req, res) => {
         populate: [
           {
             path: 'dish',
-            model: MenuList
+            model: MenuList,
           },
           {
             path: 'user',
-            model: User
-          }
-        ]
+            model: User,
+          },
+        ],
       })
       res.send(orderItemPaid)
     } else {
@@ -116,13 +116,13 @@ router.post('/check-paid', async (req, res) => {
         populate: [
           {
             path: 'dish',
-            model: MenuList
+            model: MenuList,
           },
           {
             path: 'user',
-            model: User
-          }
-        ]
+            model: User,
+          },
+        ],
       })
 
       const isAnyOrderUnpaid = paymentUserChosen.orders.some(
@@ -156,13 +156,13 @@ router.post('/check-paid-provider', async (req, res) => {
       populate: [
         {
           path: 'dish',
-          model: MenuList
+          model: MenuList,
         },
         {
           path: 'user',
-          model: User
-        }
-      ]
+          model: User,
+        },
+      ],
     })
 
     return res.send(payment)
@@ -193,13 +193,13 @@ router.post('/paid-allweeks', async (req, res) => {
       populate: [
         {
           path: 'dish',
-          model: MenuList
+          model: MenuList,
         },
         {
           path: 'user',
-          model: User
-        }
-      ]
+          model: User,
+        },
+      ],
     })
 
     return res.send(paymentUserPaid)
@@ -239,13 +239,13 @@ router.get('/payments', async (req, res) => {
         populate: [
           {
             path: 'dish',
-            model: MenuList
+            model: MenuList,
           },
           {
             path: 'user',
-            model: User
-          }
-        ]
+            model: User,
+          },
+        ],
       })
 
       res.json(payment)
@@ -257,7 +257,7 @@ router.get('/payments', async (req, res) => {
         date: order.date,
         dish: { name: order.dish.name, price: order.dish.price },
         quantity: order.quantity,
-        user: order.user._id
+        user: order.user._id,
       }))
 
       const orderListByUser = orderListFomatted.reduce((acc, order) => {
@@ -284,13 +284,13 @@ router.get('/payments', async (req, res) => {
         populate: [
           {
             path: 'dish',
-            model: MenuList
+            model: MenuList,
           },
           {
             path: 'user',
-            model: User
-          }
-        ]
+            model: User,
+          },
+        ],
       })
 
       res.json(paymentByUser)
@@ -308,8 +308,7 @@ router.get('/payment-by-week', async (req, res) => {
       .day('Monday')
       .week(currentWeek)
 
-    const endCurWeekDate = moment().startOf('day').day('Friday')
-    const orderList = await OrderDish.find()
+    const endCurWeekDate = moment().startOf('day').day('Saturday')
 
     const { query } = req
     const { type = 'date' } = query
@@ -335,33 +334,33 @@ router.get('/payment-by-week', async (req, res) => {
       )
 
       const payment = await Payment.find({
-        createdAt: { $gte: firstCurWeekDate, $lt: endCurWeekDate }
+        createdAt: { $gte: firstCurWeekDate, $lt: endCurWeekDate },
       }).populate({
         path: 'orders',
         model: OrderDish,
         populate: [
           {
             path: 'dish',
-            model: MenuList
+            model: MenuList,
           },
           {
             path: 'user',
-            model: User
-          }
-        ]
+            model: User,
+          },
+        ],
       })
 
       res.json(payment)
     } else {
       const orderList = await OrderDish.find({
-        createdAt: { $gte: firstCurWeekDate, $lt: endCurWeekDate }
+        createdAt: { $gte: firstCurWeekDate, $lt: endCurWeekDate },
       })
       const orderListFomatted = orderList.map(order => ({
         id: order._id,
         date: order.date,
         dish: { name: order.dish.name, price: order.dish.price },
         quantity: order.quantity,
-        user: order.user._id
+        user: order.user._id,
       }))
 
       const orderListByUser = orderListFomatted.reduce((acc, order) => {
@@ -388,13 +387,13 @@ router.get('/payment-by-week', async (req, res) => {
         populate: [
           {
             path: 'dish',
-            model: MenuList
+            model: MenuList,
           },
           {
             path: 'user',
-            model: User
-          }
-        ]
+            model: User,
+          },
+        ],
       })
 
       res.json(paymentByUser)
@@ -417,10 +416,10 @@ router.patch('/:orderId', async (req, res) => {
   try {
     const updatedOrder = await OrderDish.updateOne(
       {
-        _id: req.params.orderId
+        _id: req.params.orderId,
       },
       {
-        $set: { dish_name: req.body.dish_name }
+        $set: { dish_name: req.body.dish_name },
       }
     )
     res.json(updatedOrder)
