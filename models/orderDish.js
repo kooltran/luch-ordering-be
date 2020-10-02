@@ -27,6 +27,10 @@ const orderSchema = new Schema({
     type: Date,
     require: true,
   },
+  week: {
+    type: Number,
+    required: true,
+  },
 })
 
 const OrderDish = mongoose.model('OrderDish', orderSchema)

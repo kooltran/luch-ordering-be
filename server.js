@@ -16,8 +16,6 @@ const moment = require('moment')
 const cors = require('cors')
 dotenv.config()
 
-const config = require('./config.json')
-
 const MenuList = require('./models/menu')
 const orderRoute = require('./routes/orderDish')
 const usersRoute = require('./routes/users')
