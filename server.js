@@ -4,14 +4,9 @@ const express = require('express')
 const puppeteer = require('puppeteer')
 const bodyParser = require('body-parser')
 const passport = require('passport')
-const path = require('path')
 const authService = require('./services/auth.service')
-const webpush = require('web-push')
 const moment = require('moment')
-
-// const publicVapidKey =
-//   'BHAKxU6iUAw82ir5KZIzAjYUzxcj81h5r2HZu6VViXibueksOwHdWur69HV7Ze6Xssxr1j_3dY5L_2SlJ7-ekh8'
-// const privateVapidKey = 'Z1RWlWejbCqeTgJcxGoHjGZnOj2IOCRZUAEbhX2ptLk'
+const webpush = require('web-push')
 
 const cors = require('cors')
 dotenv.config()
@@ -19,6 +14,9 @@ dotenv.config()
 const MenuList = require('./models/menu')
 const orderRoute = require('./routes/orderDish')
 const usersRoute = require('./routes/users')
+const notiRoute = require('./routes/pushNoti')
+
+const vapidKeys = webpush.generateVAPIDKeys()
 
 require('./passport-setup')
 
@@ -42,8 +40,6 @@ app.use(
     credentials: true,
   })
 )
-
-// webpush.setVapidDetails('mailto:test@test.com', publicVapidKey, privateVapidKey)
 
 app.all('*', function (req, res, next) {
   var origin = req.get('origin')
@@ -118,18 +114,8 @@ const getMenuList = async () => {
 
 getMenuList()
 
-//Subscribe Route
-// app.post('/subscribe', (req, res) => {
-//   // Get pushSubscription object
-//   const subscription = req.body
-//   res.status(201).json()
-
-//   // Create payload
-//   const payload = JSON.stringify({ title: 'Push Test' })
-
-//   // Pass object into sendNotification
-//   webpush.sendNotification(subscription, payload).catch(err => console.log(err))
-// })
+app.use(passport.initialize())
+app.use(passport.session())
 
 app.get('/menuList', async (request, response) => {
   const today = moment().startOf('day')
@@ -145,9 +131,6 @@ app.get('/menuList', async (request, response) => {
     response.status(500).send(error)
   }
 })
-
-app.use(passport.initialize())
-app.use(passport.session())
 
 app.get(
   '/google',
@@ -171,6 +154,30 @@ app.use(
   [authService.checkTokenMW, authService.verifyToken],
   usersRoute
 )
+
+// app.use('/pushNoti', notiRoute)
+
+webpush.setVapidDetails(
+  'mailto:test@test.com',
+  vapidKeys.publicKey,
+  vapidKeys.privateKey
+)
+
+app.post('/subscribe', (req, res) => {
+  console.log(req, 'request')
+  // Get pushSubscription object
+  const subscription = req.body
+
+  // Send 201 - resource created
+  res.send({})
+
+  const payload = JSON.stringify({ title: 'kool tran!!!' })
+
+  // Pass object into sendNotification
+  webpush
+    .sendNotification(subscription, payload)
+    .catch(err => console.error(err))
+})
 
 app.listen(PORT, () => {
   console.log('Server started on http://localhost:' + PORT)
