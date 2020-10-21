@@ -15,7 +15,7 @@ exports.createOrderItem = async req => {
 
   const currentDishes = await OrderDish.find({
     user: userId,
-    date: currentDate,
+    date: currentDate
   })
   await Promise.all(
     currentDishes.map(dish => OrderDish.findByIdAndDelete(dish.id))
@@ -23,15 +23,22 @@ exports.createOrderItem = async req => {
 
   return await Promise.all(
     dishes.map(dish => {
-      const { quantity, date, dishId, paid, createdAt, week } = dish
+      const { quantity, date, dishId, paid, createdAt, week, extraDish } = dish
       return OrderDish.findOneAndUpdate(
-        { user: userId, date: dish.date, dish: dishId, paid },
+        {
+          user: userId,
+          date: dish.date,
+          dish: dishId,
+          paid,
+          extraDish: extraDish
+        },
         {
           quantity,
           date,
           dish: dishId,
           createdAt,
           week,
+          extraDish
         },
         { upsert: true, new: true }
       ).populate('dish user')
@@ -46,7 +53,7 @@ exports.getOrderList = async type => {
     const currentDate = new Date().toDateString()
 
     return await OrderDish.find({
-      date: currentDate,
+      date: currentDate
     }).populate('dish user')
   }
 }
@@ -141,13 +148,13 @@ exports.getAllPayments = async query => {
       populate: [
         {
           path: 'dish',
-          model: MenuList,
+          model: MenuList
         },
         {
           path: 'user',
-          model: User,
-        },
-      ],
+          model: User
+        }
+      ]
     })
   } else {
     const orderList = await OrderDish.find()
@@ -157,7 +164,7 @@ exports.getAllPayments = async query => {
       date: order.date,
       dish: { name: order.dish.name, price: order.dish.price },
       quantity: order.quantity,
-      user: order.user._id,
+      user: order.user._id
     }))
 
     const orderListByUser = orderListFomatted.reduce((acc, order) => {
@@ -185,13 +192,13 @@ exports.getAllPayments = async query => {
       populate: [
         {
           path: 'dish',
-          model: MenuList,
+          model: MenuList
         },
         {
           path: 'user',
-          model: User,
-        },
-      ],
+          model: User
+        }
+      ]
     })
   }
 }
