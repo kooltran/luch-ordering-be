@@ -14,7 +14,11 @@ const menuListSchema = new Schema({
     type: String,
     required: true
   },
-  createdAt: { type: Date }
+  createdAt: { type: Date },
+  isExtra: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const MenuList = mongoose.model('MenuList', menuListSchema)
