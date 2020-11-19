@@ -15,7 +15,7 @@ exports.createOrderItem = async req => {
 
   const currentDishes = await OrderDish.find({
     user: userId,
-    date: currentDate
+    date: currentDate,
   })
   await Promise.all(
     currentDishes.map(dish => OrderDish.findByIdAndDelete(dish.id))
@@ -30,7 +30,7 @@ exports.createOrderItem = async req => {
           date: dish.date,
           dish: dishId,
           paid,
-          extraDish: extraDish
+          extraDish: extraDish,
         },
         {
           quantity,
@@ -38,7 +38,7 @@ exports.createOrderItem = async req => {
           dish: dishId,
           createdAt,
           week,
-          extraDish
+          extraDish,
         },
         { upsert: true, new: true }
       ).populate('dish user')
@@ -53,7 +53,7 @@ exports.getOrderList = async type => {
     const currentDate = new Date().toDateString()
 
     return await OrderDish.find({
-      date: currentDate
+      date: currentDate,
     }).populate('dish user')
   }
 }
@@ -76,34 +76,20 @@ exports.checkPaid = async params => {
     .populate('dish user')
 }
 
-// exports.checkPaidProvider = async params => {
-//   const { id, isPaid, week } = params
-//   const startDate = helper.getStartDate(week)
-//   const endDate = helper.getEndDate(week)
+exports.updateOrder = async params => {
+  const { orderId, editedDishId, editedUserId } = params
 
-//   await Payment.findOneAndUpdate(
-//     { _id: id },
-//     { isPaid: isPaid },
-//     { upsert: true }
-//   )
+  const updatedOrder = await OrderDish.findByIdAndUpdate(
+    orderId,
+    {
+      user: editedUserId,
+      dish: editedDishId,
+    },
+    { new: true }
+  ).populate('dish user')
 
-//   return await Payment.find({
-//     createdAt: { $gte: startDate, $lt: endDate },
-//   }).populate({
-//     path: 'orders',
-//     model: OrderDish,
-//     populate: [
-//       {
-//         path: 'dish',
-//         model: MenuList,
-//       },
-//       {
-//         path: 'user',
-//         model: User,
-//       },
-//     ],
-//   })
-// }
+  return updatedOrder
+}
 
 exports.checkPaidAllWeek = async params => {
   const { id, isPaidAllWeek, week } = params
@@ -148,13 +134,13 @@ exports.getAllPayments = async query => {
       populate: [
         {
           path: 'dish',
-          model: MenuList
+          model: MenuList,
         },
         {
           path: 'user',
-          model: User
-        }
-      ]
+          model: User,
+        },
+      ],
     })
   } else {
     const orderList = await OrderDish.find()
@@ -164,7 +150,7 @@ exports.getAllPayments = async query => {
       date: order.date,
       dish: { name: order.dish.name, price: order.dish.price },
       quantity: order.quantity,
-      user: order.user._id
+      user: order.user._id,
     }))
 
     const orderListByUser = orderListFomatted.reduce((acc, order) => {
@@ -192,13 +178,13 @@ exports.getAllPayments = async query => {
       populate: [
         {
           path: 'dish',
-          model: MenuList
+          model: MenuList,
         },
         {
           path: 'user',
-          model: User
-        }
-      ]
+          model: User,
+        },
+      ],
     })
   }
 }

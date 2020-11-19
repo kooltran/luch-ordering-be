@@ -93,4 +93,13 @@ router.get('/payment-by-week', async (req, res) => {
   }
 })
 
+router.put('/update', async (req, res) => {
+  try {
+    const updatedOrder = await ordersServices.updateOrder(req.body)
+    res.send(updatedOrder)
+  } catch (error) {
+    res.json({ message: error })
+  }
+})
+
 module.exports = router
