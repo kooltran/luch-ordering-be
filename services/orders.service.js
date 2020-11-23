@@ -1,8 +1,4 @@
 const OrderDish = require('../models/orderDish')
-const Payment = require('../models/payment')
-const MenuList = require('../models/menu')
-const User = require('../models/user')
-const PaymentUser = require('../models/paymentByUser')
 const dayjs = require('dayjs')
 
 const weekOfYear = require('dayjs/plugin/weekOfYear')
@@ -17,6 +13,7 @@ exports.createOrderItem = async req => {
     user: userId,
     date: currentDate,
   })
+
   await Promise.all(
     currentDishes.map(dish => OrderDish.findByIdAndDelete(dish.id))
   )
@@ -103,90 +100,6 @@ exports.checkPaidAllWeek = async params => {
   return await OrderDish.find({ week: week })
     .sort({ createdAt: 'desc' })
     .populate('dish user')
-}
-
-exports.getAllPayments = async query => {
-  const { type = 'date' } = query
-
-  if (type === 'date') {
-    const orderList = await OrderDish.find()
-    const orderListByDate = orderList.reduce((acc, order) => {
-      const key = order['date']
-      acc[key] = acc[key] || []
-      acc[key].push(order)
-      return acc
-    }, {})
-
-    await Promise.all(
-      Object.keys(orderListByDate).map(async date => {
-        const orders = orderListByDate[date]
-        return await Payment.findOneAndUpdate(
-          { createdAt: dayjs(new Date(date)) },
-          { orders: orders },
-          { upsert: true }
-        )
-      })
-    )
-
-    return await Payment.find().populate({
-      path: 'orders',
-      model: OrderDish,
-      populate: [
-        {
-          path: 'dish',
-          model: MenuList,
-        },
-        {
-          path: 'user',
-          model: User,
-        },
-      ],
-    })
-  } else {
-    const orderList = await OrderDish.find()
-
-    const orderListFomatted = orderList.map(order => ({
-      id: order._id,
-      date: order.date,
-      dish: { name: order.dish.name, price: order.dish.price },
-      quantity: order.quantity,
-      user: order.user._id,
-    }))
-
-    const orderListByUser = orderListFomatted.reduce((acc, order) => {
-      const key = order['user']
-      acc[key] = acc[key] || []
-      acc[key].push(order)
-      return acc
-    }, {})
-
-    await Promise.all(
-      Object.keys(orderListByUser).map(async user => {
-        const orders = orderListByUser[user].map(item => item.id)
-
-        await PaymentUser.findOneAndUpdate(
-          { user: user },
-          { orders: orders },
-          { upsert: true }
-        )
-      })
-    )
-
-    return await PaymentUser.find().populate({
-      path: 'orders',
-      model: OrderDish,
-      populate: [
-        {
-          path: 'dish',
-          model: MenuList,
-        },
-        {
-          path: 'user',
-          model: User,
-        },
-      ],
-    })
-  }
 }
 
 exports.getPaymentByWeek = async query => {
