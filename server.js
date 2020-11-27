@@ -39,7 +39,7 @@ app.use(bodyParser.json())
 app.use(
   cors({
     origin: '*',
-    credentials: true
+    credentials: true,
   })
 )
 
@@ -67,10 +67,10 @@ mongoose
   .connect(DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
   .then(() => console.log('DB connected'))
-db.on('error', err => {
+db.on('error', (err) => {
   console.log('DB connection error:', err.message)
 })
 
@@ -79,13 +79,13 @@ mongoose.set('useFindAndModify', false)
 const getMenuList = async () => {
   try {
     const brower = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     })
     const page = await brower.newPage()
 
     await page.goto(URL, {
       waitUntil: 'load',
-      timeout: 0
+      timeout: 0,
     })
 
     const menuList = await page.evaluate(() => {
@@ -104,11 +104,11 @@ const getMenuList = async () => {
       name: 'Món Thêm',
       img: '',
       price: '25.000đ',
-      isExtra: true
+      isExtra: true,
     })
 
     await Promise.all(
-      menuList.map(async item => {
+      menuList.map(async (item) => {
         const today = moment().startOf('day')
         const { img, name, price, isExtra } = item
         await MenuList.findOneAndUpdate(
@@ -143,8 +143,8 @@ app.get('/menuList', async (request, response) => {
   try {
     const res = await MenuList.find({
       createdAt: {
-        $gte: today
-      }
+        $gte: today,
+      },
     })
 
     response.send(res)
@@ -159,7 +159,7 @@ app.use(passport.session())
 app.get(
   '/google',
   passport.authenticate('google', {
-    scope: ['profile', 'email']
+    scope: ['profile', 'email'],
   })
 )
 
@@ -178,6 +178,25 @@ app.use(
   [authService.checkTokenMW, authService.verifyToken],
   usersRoute
 )
+// Webpush notification
+webpush.setVapidDetails(
+  'mailto:test@test.com',
+  process.env.FCM_PUBLIC_KEY,
+  process.env.FCM_PRIVATE_KEY
+)
+
+app.post('/subscribe', (req, res) => {
+  const subscription = req.body
+  // Send 201 - resource created
+
+  const payload = JSON.stringify({ title: 'ĐẶT CƠM NÀO...!!!' })
+
+  // Pass object into sendNotification
+  webpush
+    .sendNotification(subscription, payload)
+    .then(() => res.send({}))
+    .catch((err) => console.error(err))
+})
 
 app.listen(PORT, () => {
   console.log('Server started on http://localhost:' + PORT)
