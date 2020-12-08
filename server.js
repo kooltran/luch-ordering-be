@@ -39,7 +39,7 @@ app.use(bodyParser.json())
 app.use(
   cors({
     origin: '*',
-    credentials: true
+    credentials: true,
   })
 )
 
@@ -59,7 +59,7 @@ app.all('*', function (req, res, next) {
   next()
 })
 
-const URL = 'https://www.anzi.com.vn/'
+const URL = 'https://www.anzi.com.vn'
 
 console.log(NODE_ENV)
 
@@ -67,7 +67,7 @@ mongoose
   .connect(DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
   .then(() => console.log('DB connected'))
 db.on('error', err => {
@@ -79,13 +79,14 @@ mongoose.set('useFindAndModify', false)
 const getMenuList = async () => {
   try {
     const brower = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      ignoreHTTPSErrors: true,
     })
     const page = await brower.newPage()
 
     await page.goto(URL, {
       waitUntil: 'load',
-      timeout: 0
+      timeout: 0,
     })
 
     const menuList = await page.evaluate(() => {
@@ -104,7 +105,7 @@ const getMenuList = async () => {
       name: 'Món Thêm',
       img: '',
       price: '25.000đ',
-      isExtra: true
+      isExtra: true,
     })
 
     await Promise.all(
@@ -143,8 +144,8 @@ app.get('/menuList', async (request, response) => {
   try {
     const res = await MenuList.find({
       createdAt: {
-        $gte: today
-      }
+        $gte: today,
+      },
     })
 
     response.send(res)
@@ -159,7 +160,7 @@ app.use(passport.session())
 app.get(
   '/google',
   passport.authenticate('google', {
-    scope: ['profile', 'email']
+    scope: ['profile', 'email'],
   })
 )
 
